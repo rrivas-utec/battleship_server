@@ -16,7 +16,8 @@
 #include <sstream>
 #include <future>
 #include <optional>
-#include <regex>        // Expresiones regulares
+#include <regex>        // regular expression
+#include <utility>
 
 namespace filesystem = std::filesystem;
 using text_t = std::string;
@@ -28,8 +29,8 @@ using path_t = filesystem::path;
 using uuid_t = size_t;
 
 enum class orientation_t { horizontal = 'H', vertical = 'V'};
-enum class status_t { model_full, fleet_full, busy, outside, ok, winner, gameover };
-enum class model_t { aircraft_carrier = 'A', battle_crusier = 'B', submarine = 'S', torped_boat = 'T' };
+enum class status_t { model_full, fleet_full, busy, outside, ok, winner, game_over };
+enum class model_t { aircraft_carrier = 'A', battle_cruiser = 'B', submarine = 'S', torped_boat = 'T' };
 enum class navy_status_t { healthy, damaged, destroyed };
 enum class action_t { start, build, attack };
 

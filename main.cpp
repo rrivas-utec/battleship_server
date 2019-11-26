@@ -2,17 +2,16 @@
 #include "player.h"
 #include "controller.h"
 
-std::map<navy_status_t, std::string> status{
+const std::map<navy_status_t, std::string> status{
 	{navy_status_t::healthy, "healthy"},
 	{navy_status_t::damaged, "damaged"},
 	{navy_status_t::destroyed, "destroyed"}
 };
 
 int main() {
-
     controller_t ctrl(10, "J", "first", "second");
     ctrl.execute();
-
+/*
     auto path_ = std::filesystem::current_path();
 
     std::unique_ptr<player_t> arr[2];
@@ -43,5 +42,6 @@ int main() {
  	if (p1.is_fleet_full())
 		std::cout << "fleet has been completed\n";
 	p1.list_fleet();
+ */
 	return 0;
 }

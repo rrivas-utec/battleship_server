@@ -7,7 +7,7 @@
 std::map<model_t, model_size_t> predefined_fleet
 {
     {model_t::aircraft_carrier, {1, {4, 1}}},
-    {model_t::battle_crusier,   {1, {3, 1}}},
+    {model_t::battle_cruiser,   {1, {3, 1}}},
     {model_t::submarine,        {1, {2, 1}}},
     {model_t::torped_boat,      {1, {1, 1}}}
 };
@@ -79,13 +79,13 @@ status_t player_t::can_add_navy(const model_t& model, const rectangle_t& rect, c
 
 size_t player_t::get_fleet_size() { return fleet_.size(); }
 
-player_t::player_t(path_t path, text_t prefix):
-    path_{path}, prefix_{prefix}, sequence_{1}, id_{0}
+player_t::player_t(const path_t& path, const text_t& prefix):
+    id_{0}, sequence_{1}, path_{path}, prefix_{prefix}
 {
 }
 
 bool player_t::is_fleet_full() {
-    auto total = 0;
+    auto total = 0u;
     for (const auto m : predefined_fleet)
         total += m.second.first;
     return fleet_.size() == total;
@@ -137,7 +137,7 @@ hit_result_t player_t::hit_navy(location_t location)
             n->status_ = n->is_detroyed() ?
                 navy_status_t::destroyed :
                 navy_status_t::damaged;
-            return { n, true };
+            return { std::move(n), true };
         }
     }
     return { std::unique_ptr<navy_t>(), false };
@@ -164,7 +164,7 @@ text_t player_t::get_name()
     return name_;
 }
 
-void player_t::set_name(text_t value)
+void player_t::set_name(const text_t& value)
 {
     name_ = value;
 }

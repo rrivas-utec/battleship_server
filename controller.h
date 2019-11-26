@@ -33,10 +33,9 @@ private:
     winner_t            winner_;
 
     // methods
-    statement_t     push_statement(path_t file_name);
-    void            start(statement_item_t item);
-    void            build(statement_item_t item);
-    void            attack(statement_item_t item);
+    void            start(const statement_item_t& item);
+    void            build(const statement_item_t& item);
+    void            attack(const statement_item_t& item);
 
 public:
     // constructor

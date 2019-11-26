@@ -30,7 +30,7 @@ public:
     navy_status_t get_status();
 };
 
-using hit_result_t = std::pair<std::unique_ptr<navy_t>&, bool>;
+using hit_result_t = std::pair<std::unique_ptr<navy_t>&&, bool>;
 using fleet_t = std::vector<std::unique_ptr<navy_t>>;
 using fleet_size_t = std::map<model_t, size_t>;
 
@@ -51,7 +51,7 @@ private:
     status_t can_add_navy(const model_t& model, const rectangle_t& rect, const rectangle_t& battle_field);
 public:
     // constructor
-    player_t(path_t path, text_t prefix);
+    player_t(const path_t& path, const text_t& prefix);
     // methods
     bool is_fleet_full();
     bool is_model_full(const model_t& model);
@@ -62,7 +62,7 @@ public:
     size_t get_id();
     void set_id(size_t value);
     text_t get_name();
-    void set_name(text_t value);
+    void set_name(const text_t& value);
     path_t get_path();
     text_t get_prefix();
     size_t& sequence();
