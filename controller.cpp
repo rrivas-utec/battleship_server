@@ -57,10 +57,9 @@ statement_t push_statement(const path_t& file_name)
     else if (key_ == "TOKEN") {
         result.token = value_;
         std::getline(file_, line_);
-        first_.clear();
-        first_ << line_;
-        std::getline(first_, key_, '=');
-        std::getline(first_, value_);
+        std::stringstream second_(line_);
+        std::getline(second_, key_, '=');
+        std::getline(second_, value_);
         if (key_ == "PLACEFLEET")
             result.action = action_t::build;
         else if (key_ == "ATTACK")
@@ -187,7 +186,7 @@ void controller_t::build(const statement_item_t& item)
     auto dimension_ = predefined_fleet[model_t(model_[0])].second;
     auto location_ = get_coordinates(slocation_);
     auto add_status_ = player_->add_navy(location_, model_t(model_[0]),
-        orientation_t(orientation_[0]), { location_, dimension_});
+        orientation_t(orientation_[0]), { {0, 0}, {static_cast<length_t>(columns_[0]-'A'), rows_}});
 
     if (add_status_ == status_t::busy) {
         status_ = "REJECTED";
