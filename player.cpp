@@ -140,7 +140,7 @@ hit_result_t player_t::hit_navy(location_t location)
             return { std::move(n), true };
         }
     }
-    return { std::unique_ptr<navy_t>(), false };
+    return { std::unique_ptr<navy_t>{nullptr}, false };
 }
 
 void player_t::list_fleet()

@@ -8,6 +8,7 @@
 #include <string_view>
 #include <memory>
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <algorithm>
 #include <filesystem>
@@ -15,11 +16,15 @@
 #include <random>
 #include <sstream>
 #include <future>
+#include <functional>
 #include <optional>
+#include <thread>
+#include <chrono>
 #include <regex>        // regular expression
 #include <utility>
 
 namespace filesystem = std::filesystem;
+namespace chrono = std::chrono;
 using text_t = std::string;
 using position_t = size_t;
 using length_t = size_t;
@@ -27,6 +32,9 @@ using input_file_t = std::ifstream;
 using output_file_t = std::ofstream;
 using path_t = filesystem::path;
 using uuid_t = size_t;
+using time_point_t = std::chrono::time_point<std::chrono::steady_clock>;
+using duration_t = chrono::duration<double>;
+using timer_action_t = std::function<bool(void)>;
 
 enum class orientation_t { horizontal = 'H', vertical = 'V'};
 enum class status_t { model_full, fleet_full, busy, outside, ok, winner, game_over };

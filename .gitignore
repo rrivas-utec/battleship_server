@@ -5,3 +5,6 @@
 /.vs
 /cmake-build-debug
 /out/build/x64-Debug
+/out
+/bin/first/backup
+/bin/battleship_server.exe

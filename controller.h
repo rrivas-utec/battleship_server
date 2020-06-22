@@ -37,6 +37,8 @@ private:
     void            build(const statement_item_t& item);
     void            attack(const statement_item_t& item);
 
+    // guard
+    mutable std::mutex statements_mutex;
 public:
     // constructor
     controller_t(size_t rows, std::string_view columns, std::string_view path, std::string_view second);
