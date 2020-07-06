@@ -47,7 +47,7 @@ location_t get_coordinates(std::string value)
 	text_t row_ = (++sit)->str();
 
 	auto ucol_ = static_cast<size_t>(col_[0]) - 'A';
-	auto urow_ = static_cast<size_t>(std::stoi(row_));
+	auto urow_ = static_cast<size_t>(std::stoi(row_) - 1u);
 
 	return { ucol_, urow_ };
 }
@@ -116,7 +116,7 @@ void controller_t::load_tokens()
 					first_++;
 				}
 				if (second_ != end_) {
-					if (second_->path().extension() == ".out"s) {
+					if (second_->path().extension() == ".in"s) {
 						statements_.push({ 1u, push_statement(*second_) });
 						filesystem::remove(*second_, e);
 						if (e)
@@ -175,10 +175,10 @@ void controller_t::start(const statement_item_t& item)
 	else {
 		status_ = "ACCEPTED";
 		message_ = "CONTINUE";
-		auto& other_ = item.first == 0u ? players_[1] : players_[0];
+		auto& another_ = players_[item.first == 0u ? 1u : 0u];
 		do {
 			player_->set_id(rand_int(100000u, 999999u));
-		} while (player_->get_id() == other_->get_id());
+		} while (player_->get_id() == another_->get_id());
 
 		player_->set_name(item.second.parameter);
 		std::cout << "player " << player_->get_name() << " has been assigned with: " << player_->get_id() << "\n";
@@ -258,7 +258,7 @@ void controller_t::attack(const statement_item_t& item)
 	auto& player_ = players_[item.first];
 	auto location_ = get_coordinates(item.second.parameter);
 
-	auto& opponent_ = players_[item.first ? 1u : 0u];
+	auto& opponent_ = players_[item.first == 0u ? 1u : 0u];
 	auto hit_result_ = opponent_->hit_navy(location_);
 
 	text_t status_ = "ACCEPTED";
@@ -280,7 +280,7 @@ void controller_t::attack(const statement_item_t& item)
 			message_ = "WINNER";
 		}
 	}
-	else if (hit_result_.first) {
+	else if (!hit_result_.second) {
 		message_ = "FAILED";
 	}
 	else if (hit_result_.first->get_status() == navy_status_t::damaged) {

@@ -16,7 +16,6 @@ struct statement_t {
 };
 
 using statement_item_t = std::pair<size_t, statement_t>;
-
 using player_list_t = std::vector<std::unique_ptr<player_t>>;
 using statement_list_t = std::queue<statement_item_t>;
 using path_list_t = std::vector<path_t>;
@@ -31,14 +30,11 @@ private:
     player_list_t       players_;
     statement_list_t    statements_;
     winner_t            winner_;
-
     // methods
     void            start(const statement_item_t& item);
     void            build(const statement_item_t& item);
     void            attack(const statement_item_t& item);
 
-    // guard
-    mutable std::mutex statements_mutex;
 public:
     // constructor
     controller_t(size_t rows, std::string_view columns, std::string_view path, std::string_view second);

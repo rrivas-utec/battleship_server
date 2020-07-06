@@ -44,7 +44,6 @@ private:
     size_t sequence_;
     path_t path_;
     text_t prefix_;
-
     // methods
     bool is_navy_outside(const rectangle_t& rect, const rectangle_t& battle_field);
     bool is_navy_overlap(const rectangle_t& rect);

@@ -66,10 +66,10 @@ bool navy_t::is_detroyed()
 
 status_t player_t::can_add_navy(const model_t& model, const rectangle_t& rect, const rectangle_t& battle_field)
 {
-    if (is_model_full(model))
+    if (is_fleet_full())
+        return status_t::fleet_full; 
+    else if (is_model_full(model))
         return status_t::model_full;
-    else if (is_fleet_full())
-        return status_t::fleet_full;
     else if (is_navy_outside(rect, battle_field))
         return status_t::outside;
     else if (is_navy_overlap(rect))
@@ -86,8 +86,12 @@ player_t::player_t(const path_t& path, const text_t& prefix):
 
 bool player_t::is_fleet_full() {
     auto total = 0u;
-    for (const auto m : predefined_fleet)
-        total += m.second.first;
+    for (const auto& [key, behaviors] : predefined_fleet)
+    {
+        const auto& [quantity, sizes] = behaviors;
+        total += quantity;
+    }
+
     return fleet_.size() == total;
 }
 
