@@ -195,6 +195,7 @@ void controller_t::start(const statement_item_t& item)
 	file << "TOKEN=" << token_ << "\n";
 	file << "SCOPE=" << scope_ << "\n";
 	file << "MESSAGE=" << message_ << "\n";
+
 }
 
 void controller_t::build(const statement_item_t& item)
@@ -205,44 +206,44 @@ void controller_t::build(const statement_item_t& item)
 	if (player_->get_id() == 0) {
 		message_ = "HANDCHECK MISSED";
 		status_ = "REJECTED";
-		std::cout << "cannot build fleet of player #" << item.first + 1 << " if id has not been assigned\n";
 	}
-	if (player_->get_id() != std::stoul(item.second.token)) {
+	else if (player_->get_id() != std::stoul(item.second.token)) {
 		message_ = "ID DOES NOT MATCH";
 		status_ = "REJECTED";
-		std::cout << "Sent ID=" << item.second.token << " does not match with current ID=" << player_->get_id() << "\n";
 	}
-	std::stringstream ss(item.second.parameter);
-	text_t model_;
-	text_t slocation_;
-	text_t orientation_;
-	std::getline(ss, model_, '-');
-	std::getline(ss, slocation_, '-');
-	std::getline(ss, orientation_);
-	auto dimension_ = predefined_fleet[model_t(model_[0])].second;
-	auto location_ = get_coordinates(slocation_);
-	auto add_status_ = player_->add_navy(location_, model_t(model_[0]),
-		orientation_t(orientation_[0]), { {0, 0}, {static_cast<length_t>(columns_[0]) - 'A', rows_} });
+	else {
+		std::stringstream ss(item.second.parameter);
+		text_t model_;
+		text_t slocation_;
+		text_t orientation_;
+		std::getline(ss, model_, '-');
+		std::getline(ss, slocation_, '-');
+		std::getline(ss, orientation_);
+		auto dimension_ = predefined_fleet[model_t(model_[0])].second;
+		auto location_ = get_coordinates(slocation_);
+		auto add_status_ = player_->add_navy(location_, model_t(model_[0]),
+			orientation_t(orientation_[0]), { {0, 0}, {static_cast<length_t>(columns_[0]) - 'A' + 1, rows_} });
 
-	if (add_status_ == status_t::busy) {
-		status_ = "REJECTED";
-		message_ = "BUSY";
-	}
-	else if (add_status_ == status_t::fleet_full) {
-		status_ = "REJECTED";
-		message_ = "FULL";
-	}
-	else if (add_status_ == status_t::model_full) {
-		status_ = "REJECTED";
-		message_ = "COMPLETE";
-	}
-	else if (add_status_ == status_t::outside) {
-		status_ = "REJECTED";
-		message_ = "OUTSIDE";
-	}
-	else if (add_status_ == status_t::ok) {
-		status_ = "ACCEPTED";
-		message_ = "CONTINUE";
+		if (add_status_ == status_t::busy) {
+			status_ = "REJECTED";
+			message_ = "BUSY";
+		}
+		else if (add_status_ == status_t::fleet_full) {
+			status_ = "REJECTED";
+			message_ = "FULL";
+		}
+		else if (add_status_ == status_t::model_full) {
+			status_ = "REJECTED";
+			message_ = "COMPLETE";
+		}
+		else if (add_status_ == status_t::outside) {
+			status_ = "REJECTED";
+			message_ = "OUTSIDE";
+		}
+		else if (add_status_ == status_t::ok) {
+			status_ = "ACCEPTED";
+			message_ = "CONTINUE";
+		}
 	}
 
 	text_t action_ = "PLACEFEET";
@@ -251,43 +252,58 @@ void controller_t::build(const statement_item_t& item)
 	file << action_ << "\n";
 	file << "STATUS=" << status_ << "\n";
 	file << "MESSAGE=" << message_ << "\n";
+	std::cout << "ID=" << item.second.token << " ACTION=" << action_ << " STATUS=" << status_ << " MESSAGE=" << message_ << "\n";
 }
 
 void controller_t::attack(const statement_item_t& item)
 {
 	auto& player_ = players_[item.first];
-	auto location_ = get_coordinates(item.second.parameter);
-
-	auto& opponent_ = players_[item.first == 0u ? 1u : 0u];
-	auto hit_result_ = opponent_->hit_navy(location_);
-
 	text_t status_ = "ACCEPTED";
 	text_t message_;
-	if (!player_->is_fleet_full()) {
-		std::cout << "player #" << item.first + 1 << " cannot attack if fleet has not been completed\n";
+	if (player_->get_id() == 0) {
+		message_ = "HANDCHECK MISSED";
 		status_ = "REJECTED";
-		message_ = "FLEET INCOMPLETE";
 	}
-	else if (opponent_->is_fleet_destroyed()) {
-		if (winner_.has_value()) {
-			if (winner_ == item.first)
+	else if (player_->get_id() != std::stoul(item.second.token)) {
+		message_ = "ID DOES NOT MATCH";
+		status_ = "REJECTED";
+	}
+	else {
+		auto location_ = get_coordinates(item.second.parameter);
+		auto& opponent_ = players_[item.first == 0u ? 1u : 0u];
+		auto hit_result_ = opponent_->hit_navy(location_);
+
+		if (opponent_->get_fleet_size() == 0) {
+			std::cout << "player #" << item.first + 1 << " cannot attack if opponent does not have any navy located\n";
+			status_ = "REJECTED";
+			message_ = "NO OPPONENT";
+		}
+		else if (!player_->is_fleet_full()) {
+			std::cout << "player #" << item.first + 1 << " cannot attack if fleet has not been completed\n";
+			status_ = "REJECTED";
+			message_ = "FLEET INCOMPLETE";
+		}
+		else if (opponent_->is_fleet_destroyed()) {
+			if (winner_.has_value()) {
+				if (winner_ == item.first)
+					message_ = "WINNER";
+				else
+					message_ = "GAMEOVER";
+			}
+			else {
+				winner_ = item.first;
 				message_ = "WINNER";
-			else
-				message_ = "GAMEOVER";
+			}
 		}
-		else {
-			winner_ = item.first;
-			message_ = "WINNER";
+		else if (!hit_result_.second) {
+			message_ = "FAILED";
 		}
-	}
-	else if (!hit_result_.second) {
-		message_ = "FAILED";
-	}
-	else if (hit_result_.first->get_status() == navy_status_t::damaged) {
-		message_ = "DAMAGED";
-	}
-	else if (hit_result_.first->get_status() == navy_status_t::destroyed) {
-		message_ = "DESTROYED";
+		else if (hit_result_.first->get_status() == navy_status_t::damaged) {
+			message_ = "DAMAGED";
+		}
+		else if (hit_result_.first->get_status() == navy_status_t::destroyed) {
+			message_ = "DESTROYED";
+		}
 	}
 
 	auto file_name_ = player_->get_prefix() + std::to_string(player_->sequence()++) + ".out";
@@ -296,6 +312,7 @@ void controller_t::attack(const statement_item_t& item)
 	file << action_ << "\n";
 	file << "STATUS=" << status_ << "\n";
 	file << "MESSAGE=" << message_ << "\n";
+	std::cout << "ID=" << item.second.token << " ACTION=" << action_ << " STATUS=" << status_ << " MESSAGE=" << message_ << "\n";
 }
 
 controller_t::controller_t(size_t rows, std::string_view columns,
