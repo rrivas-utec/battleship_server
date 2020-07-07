@@ -15,25 +15,6 @@ integer_t rand_int(integer_t first, integer_t last) {
 	return gen(eng);
 }
 
-class timer_t {
-	size_t frequency_;
-	duration_t interval_;
-	timer_action_t action_;
-public:
-	timer_t() = default;
-	timer_t(size_t frequency, duration_t interval, timer_action_t action, bool auto_start = true) :
-			frequency_{ frequency }, interval_ { interval }, action_{ action } {
-		if (auto_start) start();
-	}
-	void start() {
-		auto n = frequency_;
-		while (--n) {
-			std::this_thread::sleep_for(interval_);
-			if (action_()) break;
-		}
-	}
-};
-
 location_t get_coordinates(std::string value)
 {
 	std::regex r(R"(^([A-Z])(\d+)$)");
@@ -47,7 +28,7 @@ location_t get_coordinates(std::string value)
 	text_t row_ = (++sit)->str();
 
 	auto ucol_ = static_cast<size_t>(col_[0]) - 'A';
-	auto urow_ = static_cast<size_t>(std::stoi(row_) - 1u);
+	auto urow_ = static_cast<size_t>(std::stoul(row_) - 1u);
 
 	return { ucol_, urow_ };
 }
@@ -58,7 +39,7 @@ statement_t push_statement(const path_t& file_name)
 	std::ifstream file_;
 	file_.open(file_name.generic_string());
 	if (!file_.is_open()) {
-		timer_t timer(2, 4ms, [&]() {
+		controller_timer_t timer(2, 4ms, [&]() {
 			file_.open(file_name.generic_string()); 
 			return file_.is_open();
 			});
@@ -219,7 +200,6 @@ void controller_t::build(const statement_item_t& item)
 		std::getline(ss, model_, '-');
 		std::getline(ss, slocation_, '-');
 		std::getline(ss, orientation_);
-		auto dimension_ = predefined_fleet[model_t(model_[0])].second;
 		auto location_ = get_coordinates(slocation_);
 		auto add_status_ = player_->add_navy(location_, model_t(model_[0]),
 			orientation_t(orientation_[0]), { {0, 0}, {static_cast<length_t>(columns_[0]) - 'A' + 1, rows_} });
@@ -333,3 +313,17 @@ void controller_t::execute()
 	auto load_ = std::async([&] { load_tokens(); });
 	auto save_ = std::async([&] { save_tokens(); });
 }
+
+controller_timer_t::controller_timer_t(size_t frequency, duration_t interval, timer_action_t action, bool auto_start) :
+	frequency_{ frequency }, interval_{ interval }, action_{ action } {
+	if (auto_start) start();
+}
+
+void controller_timer_t::start() {
+	auto n = frequency_;
+	while (--n) {
+		std::this_thread::sleep_for(interval_);
+		if (action_()) break;
+	}
+}
+

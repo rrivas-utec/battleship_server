@@ -21,6 +21,15 @@ using statement_list_t = std::queue<statement_item_t>;
 using path_list_t = std::vector<path_t>;
 using winner_t = std::optional<size_t>;
 
+class controller_timer_t {
+private:
+    size_t frequency_;
+    duration_t interval_;
+    timer_action_t action_;
+public:
+    controller_timer_t(size_t frequency, duration_t interval, timer_action_t action, bool auto_start = true);
+    void start();
+};
 
 class controller_t {
 private:
