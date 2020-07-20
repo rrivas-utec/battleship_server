@@ -40,7 +40,7 @@ statement_t push_statement(const path_t& file_name)
 	file_.open(file_name.generic_string());
 	if (!file_.is_open()) {
 		controller_timer_t timer(2, 4ms, [&]() {
-			file_.open(file_name.generic_string()); 
+			file_.open(file_name.generic_string());
 			return file_.is_open();
 			});
 	}
@@ -87,6 +87,10 @@ void controller_t::load_tokens()
 			filesystem::directory_iterator first_{ players_[0]->get_path() / "in"s };
 			filesystem::directory_iterator second_{ players_[1]->get_path() / "in"s };
 			while (first_ != end_ || second_ != end_) {
+
+				// Don't remove. Without this the server won't work with optimizations activated.
+				std::lock_guard<std::mutex> lock(statements_guard);
+
 				if (first_ != end_) {
 					if (first_->path().extension() == ".in"s) {
 						statements_.push({ 0u, push_statement(*first_) });
@@ -121,6 +125,7 @@ void controller_t::save_tokens()
 	auto end_ = filesystem::directory_iterator{};
 	while (true) {
 		try {
+			std::lock_guard<std::mutex> lock(statements_guard);
 			while (!statements_.empty()) {
 				auto item_ = statements_.front();
 				statements_.pop();
